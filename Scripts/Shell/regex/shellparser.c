@@ -84,6 +84,8 @@ struct regex_string
 	int malloced;
 };
 
+#define zmalloc(x, z) x = malloc(z); memset(x, 0, z);
+
 #define str_malloc_(y, z) \
 	y.string = malloc(z); \
 	memset(y.string, 0, z); \
@@ -270,7 +272,7 @@ void str_output_append(struct regex_string * str, const char * file);
 
 int debug_tok = 0;
 int debug_char = 0;
-int debug_scope = 0;
+int debug_scope = 1;
 
 struct ret {
 	int type;
@@ -555,7 +557,7 @@ void parse(char * i, char * delim) {
 	int column_local = 0;
 	int column_local_max = getbitgroupcount(get_longest_line(i));
 	if (strcmp(delim, "(") == 0 || strcmp(delim, ")") == 0 || strcmp(delim, "{") == 0 || strcmp(delim, "}") == 0 || strcmp(delim, "[") == 0 || strcmp(delim, "]") == 0 || strcmp(delim, "'") == 0 || strcmp(delim, "\"") == 0 || strcmp(delim, "#") == 0 || strcmp(delim, dollar_string) == 0 || strcmp(delim, "=") == 0) {
-		puts("delimiter cannot be a reserved scope delimiter");
+		puts("delimiter cannot be a reserved token");
 		return;
 	};
 	a.toggle = -1;

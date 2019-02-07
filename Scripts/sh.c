@@ -6,8 +6,8 @@ int main(void)
 {
 	shell.exe = true;
 	shell.exebackground = false;
-	shell.debug = false;
-	shell.debug_calls = false;
+	shell.debug = true;
+	shell.debug_calls = true;
 	printf("Welcome to %s %s!\n", shell.name, shell.version);
 	int status = 0;
 	while(status == 0)

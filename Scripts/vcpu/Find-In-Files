@@ -1,0 +1,7 @@
+file=($(find ./)) &&
+for i in ${file[@]}
+    do
+        cat $i 2>/dev/null | grep --color=always -n -q -i -e "$@" && 
+        printf "\n$i:\n" && 
+        cat $i 2>/dev/null | grep --color=always -n -i -e "$@"
+done

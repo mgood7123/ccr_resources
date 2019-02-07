@@ -1,0 +1,204 @@
+/*
+        encoding:
+        https://codeabbey.github.io/heavy-data-1/msc-4-asm-manual-1973.pdf
+        this PDF serves as inspiration to the 
+        encoding syntax format using by the parser
+
+        CURRENTLY ONLY SUPPORTS A SINGLE LAYER ENCODING SYNTAX
+
+        only word BEFORE the colon shall be recognized
+        the rest shall be counted as if it where a comment
+
+        eg RECOGNIZED:COMMENT
+
+        x shall count as 0 or 1 (like a wildcard or '.' (any character) in regex)
+    */
+#P:
+    /*
+        denotes a symbol reference, for example:
+        
+        [000:0P] > [#P] > [0P: r0:r1]
+        
+    */
+    0P: r0:r1
+    1P: r2:r3
+    2P: r4:r5
+    3P: r6:r7
+    4P: r8:r9
+    5P: r10:r11
+    6P: r12:r13
+    7P: r14:r15
+RP:
+    000:0P
+    001:1P
+    010:2P
+    011:3P
+    100:4P
+    101:5P
+    110:6P
+    111:7P
+REG:
+    0000:r0
+    0001:r1
+    0010:r2
+    0011:r3
+    0100:r4
+    0101:r5
+    0110:r6
+    0111:r7
+    1000:r8
+    1001:r9
+    1010:r10
+    1011:r11
+    1100:r12
+    1101:r13
+    1110:r14
+    1111:r15
+xx:
+    00:ADD
+    01:SUB
+    10:LD
+    11:XCH
+xxxx:
+    0000:CLR
+    0001:CLC
+    0010:IAC
+    0011:CMC
+    0100:CMA
+    0101:RAL
+    0110:RAR
+    0111:TCC
+    1000:DAC
+    1001:TCS
+    1010:STC
+    1011:DAA
+    1100:KBP
+CN:
+  //1xxx: invert all other jump conditions
+  // [] represent a muli-match parse, in where the same string can be matched multiple times without terminating to next rule after a single match
+    
+    0xx1: none //jump if test signal of 4004 is = 0
+   [1xx1]: none //jump if test signal of 4004 is = 1
+   [0x1x]: none //jump if carry bit = 1
+   [1x1x]: none //jump if carry bit = 0
+   [01xx]: none //jump if accumulator = 0
+   [11xx]: none //jump if accumulator != 0
+OP:
+    0000:WRM
+    0001:WMP
+    0010:WRR
+    0011:WPM
+    0100:WR0
+    0101:WR1
+    0110:WR2
+    0111:WR3
+    1000:SBM
+    1001:RDM
+    1010:RDR
+    1011:ADM
+    1100:RD0
+    1101:RD1
+    1110:RD2
+    1111:RD3
+
+//     /* consecutive sequence will be concated
+//     * example:
+//     * |DATA|DATA|
+//     * assuming DATA is 4 bits long
+//     * indicates DATA takes up 8 bits
+//     */
+    
+DATA:
+	xxxx:DATA
+ADDR:
+	xxxx:ADDR
+	
+	/*
+	
+	| does nothing and can act as a visual seperator to help visualize the structure of an encoding's binary layout *
+	
+	$...{} represents variable placement based action code
+	both #num and $name can be used to reference the position of an action code
+	${name#num} represents a $name that occurs more than once in the same rule, where #num indicates the occurence number of $name to act upon
+	can be concated via $ or # to specify multiple places where the following rule should be placed
+	
+	
+	FIN: |0011|RP|0|				$FIN$0011$0			{ puts($$.name); } $RP{ puts($$.content); }
+	FIN: |0011|RP|0|				$FIN $0011 $0			{ puts($$.name); } $RP{ puts($$.content); }
+	FIN: |0011|RP|0|				$FIN${0011#0}$0		{ puts($$.name); } $RP{ puts($$.content); }
+	FIN: |0011|RP|0|				$FIN
+									$
+									{
+										0
+										0
+										1
+										1
+										#
+										0
+									}
+									#
+									3
+									{ puts($$.name); } $RP{ puts($$.content); }
+	FIN: |0011|RP|0|				#0#1#3				{ puts($$.name); } $RP{ puts($$.content); }
+	FIN: |0011|RP|0|				#0 #1 #3				{ puts($$.name); } $RP{ puts($$.content); }
+	FIN: |0011|RP|0|				$FIN				{ puts($$.name); } $0011{ puts($$.name); } $RP{ puts($$.content); } $0{ puts($$.name); }
+	FIN: |0011|RP|0|				$FIN{ puts($$.name); } ${0011#0}{ puts($$.name); } $RP{ puts($$.content); } $0{ puts($$.name); }
+	FIN: |0011|RP|0|				#0{ puts($$.name); } #1{ puts($$.name); } #2{ puts($$.content); } #3{ puts($$.name); }
+	FIN: |0011|RP|0|				#0{ puts($$.name); } $0011{ puts($$.name); } $RP{ puts($$.content); } #3{ puts($$.name); }
+	all of these are equivilant to
+	FIN { puts($$.name); } : |0011 { puts($$.name); } |RP { puts($$.content); } |0 { puts($$.name); } |
+	
+	
+	FIM: |0010|RP|0|DATA|DATA|		${DATA#0} {DATA1}
+									${DATA#1} {DATA2}
+									${DATA#0}$FIM {ECHO}
+	is equivilant to
+	FIM {ECHO}: |0010|RP|0|DATA {DATA1} {ECHO} |DATA {DATA2}|
+	
+	*/
+	
+// FIN1 {
+// rip lol
+// } : | 0011|RP|0|
+// 	   $0011 {
+// printf("a->contents = 0011, regexEngineb_bits = %s\n", regexEngineb_bits);
+// puts("FIN1 ");
+// } {
+// puts ("HELLO");
+// }
+// 
+// 		    $RP {
+// puts("RP ");
+// }
+// FIN2: |0011|RP|1|
+// 	   $0011 {
+// printf("a->contents = 0011, regexEngineb_bits = %s\n", regexEngineb_bits);
+// puts("FIN2 ");
+// }
+// 
+// 		   $RP {
+// puts("RP ");
+// }
+// JCN:  |0001|CN  |ADDR|ADDR|
+// 	 $0001 {
+// printf("a->contents = 0001, regexEngineb_bits = %s\n", regexEngineb_bits);
+// puts("JCN ");
+// }
+// 		  $CN {
+// puts("CN");
+// 		}
+// 			  ${ADDR#0}
+// 				   ${ADDR#1} {
+// printf("a->contents = xxxx, regexEngineb_bits = %s\n", regexEngineb_bits);
+// 			}
+
+
+// tests
+def0:
+35:NULL
+85:NULL
+def1:
+91:NULL
+92:NULL
+
+rule1 : |def0|

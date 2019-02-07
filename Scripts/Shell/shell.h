@@ -1,6 +1,6 @@
 ﻿//Author: mgood7123 (Matthew James Good) http://github.com/mgood7123
 
-#include "../Garbage_Collector/gc.h"
+//#include "../Garbage_Collector/gc.h"
 // Garbage_Collector_Debug = Garbage_Collector_Debug_Free | Garbage_Collector_Debug_Realloc | Garbage_Collector_Debug_List;
 
 #include <stdio.h>
@@ -99,7 +99,7 @@ void prompt()
 
 #include "builtins/split.h"
 
-#include "builtins/builtins.h"
+//#include "builtins/builtins.h"
 
 #define true 1
 #define false 0
@@ -113,9 +113,12 @@ int have_builtins = false;
 
 // provide minimal capability from builtins, enough to make the shell work
 
-ssize_t getline_stdin(char ** dest) {
+ssize_t getline_stdin(char ** dest, bool include_delimiter, bool unbuffered, bool echo) {
 	ssize_t nu = 0;
-	getline_include_delimiter = false;
+
+	getlineval(include_delimiter) = include_delimiter;
+	getlineval(use_unbuffered) = unbuffered;
+
 	return getline(dest, &nu, stdin);
 }
 
@@ -242,7 +245,7 @@ struct command {
 		int vector_how_many;
 		char * vector_sub_word[MAX];
 	} vector_sub[MAX];
-	struct wordAND vector_subAND[MAX];
+// 	struct wordAND vector_subAND[MAX];
 } commands;
 
 const char * fix_string(const char * fmt) {
@@ -307,7 +310,7 @@ const char * replace(const char * str) {
 		    }
 		    mq(qt,tmp);
 		    DEBUG printf("CORRECTION tmp = %s\n", qt);
-		    free(qt)
+		    free(qt);
 		}
 		else {
 			sprintf(tmp, "%s%c", tmp, str[i]);
@@ -414,8 +417,8 @@ int detect_keyword(int argc, char ** argv, int i) {
 
 void * execute(void * tmp) {
 	CURRENT_FUNCTION
-	mach_port_t machTID = pthread_mach_thread_np(pthread_self());
-	DEBUG printf("machTid is %d\n", machTID);
+// 	mach_port_t machTID = pthread_mach_thread_np(pthread_self());
+// 	DEBUG printf("machTid is %d\n", machTID);
 	struct command *cmd = tmp;
 	DEBUG ps(cmd->vector_line[cmd->vector_line_idx])
 	DEBUG pi(cmd->vector_line_idx)
@@ -514,8 +517,8 @@ void * execute(void * tmp) {
 
 void execute_thread(struct command ** commands) {
 	CURRENT_FUNCTION
-	mach_port_t machTID = pthread_mach_thread_np(pthread_self());
-	DEBUG printf("machTid is %d\n", machTID);
+// 	mach_port_t machTID = pthread_mach_thread_np(pthread_self());
+// 	DEBUG printf("machTid is %d\n", machTID);
 	/* Initialize and set thread detached attribute */
 	pthread_attr_init(&attr);
     pthread_create(&threads[1], &attr, &execute, commands);
@@ -636,7 +639,7 @@ void parse_special_commands(int cc, char * command_list[]) {
         		commands.vector_sub[commands.vector_word_idx].vector_how_many = 0;
         	}
         }
-        execute_thread(&commands);
+        //execute_thread(&commands);
         if (shell.exit == 1) {
 		    return;
 	    }

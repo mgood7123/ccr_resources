@@ -1,5 +1,9 @@
 ﻿#include <stdio.h>
+#ifdef __CCR__
 #include <conio.h>
+#else
+#include "getch.h"
+#endif
 
 int main ()
 {

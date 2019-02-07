@@ -1,0 +1,50 @@
+parser_root : <root>+;
+root : <comment> | <definition> | <instruction> | <S> <EOL>;
+definition : <definition_start> <definition_statement>+;
+instruction : <instruction_start>? <instruction_statement> ((<S> (<action_code> | <action_code_segmented>))+)? <instruction_end>;
+
+definition_start : <hash>? <ISA_DEFINE> <S> <colon> <EOL>;
+definition_statement : <S> <definition_item>+;
+definition_item : <S> (<item> <S> ( <pair> | <single> ))? <S> <comment>? <EOL>;
+
+instruction_start : <ISA_DEFINE> <S> <colon>;
+instruction_statement : <S> <instruction_item>;
+instruction_item : <S> ('|' | <binary> (<action>+)? | <ISA_RULE> | <space> | <tab>)+;
+instruction_end : <S> <comment>? <EOL>;
+
+ISA_DEFINE : <word> (<action>+)?;
+ISA_RULE : <word> (<action>+)?;
+item : <bracketed_item> | <normal_item>;
+bracketed_item : '[' <word> ']' <colon>;
+normal_item : <word> <colon>;
+single : <word>;
+pair : <word> <colon> <word>;
+
+binary : /[01]+/;
+colon : ':';
+hash : '#';
+EOL	: ( "\n" | "\r\n" | "\r" | ";" );
+comment : <S> (<single_line_comment> | <multi_line_comment>);
+single_line_comment : "//" /[^\r\n]*/;
+multi_line_comment : "/*" ("*/"! /.|\n/)+ "*/";
+
+
+name : '$' <word>;
+num : '#' <number>;
+indexedname : "${" <word> <num> '}';
+action_code : (<name> | <num> | <indexedname> | (<space> | <tab>)+)+ <action>+;
+
+word : /[a-zA-Z0-9]+/;
+number : /[0-9]+/;
+space : ' ';
+tab : "\t";
+SS : (<space> | <tab> | "\n");
+S : (<space> | <tab>)*;
+word_segmented : <SS>* <word>;
+number_segmented : <SS>* <number>;
+name_segmented : <SS>* '$' <word_segmented>+;
+num_segmented : <SS>* '#' <number_segmented>+;
+indexedname_segmented : <SS>* "$" <SS>* "{" <word_segmented>+ <num_segmented>+ <SS>* '}';
+action_code_segmented : (<name_segmented> | <num_segmented> | <indexedname_segmented> | <SS>+)+ <S> <action>+;
+
+action : <S> "{" ("}"! /.|\n/)+ "}";

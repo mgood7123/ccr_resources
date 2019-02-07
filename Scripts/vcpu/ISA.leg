@@ -1,0 +1,55 @@
+%{
+#include <stdio.h>
+#include "../Shell/builtins/env.h"
+#include "../Shell/builtins/printfmacro.h"
+#include "../Shell/builtins/clock.h"
+	char * __ISA_FUNCTION__ = NULL;
+	#define ISA_FUNC_ASSIGN if (__ISA_FUNCTION__) { free(__ISA_FUNCTION__); __ISA_FUNCTION__ = NULL; } __ISA_FUNCTION__ = strdup(yytext)
+%}
+
+a = ((comment | ha|ha2 | EOL) { puts("a")})+
+
+ha = (hash < wordISA > { ISA_FUNC_ASSIGN; ps(__ISA_FUNCTION__)} colon EOL ) { puts("hash number statement BEGIN") } - ha_statement+ { puts("hash number statement") }
+ha2 = (< wordISA > { ISA_FUNC_ASSIGN; ps(__ISA_FUNCTION__)} colon EOL ) { puts("hash number statement BEGIN") } - ha_statement+ { puts("hash number statement 2") }
+
+ha_statement = - (comment | (item - ( pair | single ) - comment?) | EOL)
+
+item = word colon { puts("item")}
+single = word { puts("single")}
+pair = word colon word { puts("pair")}
+
+hash = <'#'> { printf("hash = %s\n", yytext) }
+colon = <':'> { printf("colon = %s\n", yytext) }
+
+
+word = < [a-zA-Z0-9_]+ > { printf("word = '%s' func = %s\n", yytext, __ISA_FUNCTION__); }
+wordISA = [a-zA-Z0-9_]+
+number = < [0-9]+ > { printf("number = '%s'\n", yytext); }
+symbol = < [*&.\\/#;=:|] > { printf("symbol = '%s'\n", yytext); }
+quotes = < ['"] > { printf("quotes = %s\n", yytext); }
+EOL	= < ( '\n' | '\r\n' | '\r' | ';' ) > { printf("EOL\n"); }
+EOF = !. { printf("EOF\n"); }
+brackets = < ( '(' | '[' | '{'
+   |
+     ')' | ']' | '}' ) > { printf("bracket = '%s'\n", yytext); }
+-	= (space | tab)*
+--	= (' ' | '\t')*
+space = ' '
+tab = '\t'
+comma = ',' { puts("comma"); }
+comment=	< '//' (!end-of-line .)* > end-of-line { printf("comment = '%s'\n", yytext); }
+end-of-line=	( '\r\n' | '\n' | '\r' )
+
+%%
+int main(int argc, char **argv)
+{
+	if (argc > 1) {
+		if (!(yy_FILE_file = fopen(argv[1], "r"))) {
+			perror(argv[1]);
+			exit(1);
+		}
+		while (yyparse());
+	    fclose(yy_FILE_file);
+	}
+	return 0;
+}

@@ -38,7 +38,7 @@
 
 char * builtin__whereis(const int argc, const char * argv[], const char * extention, int skip_arg0, char * optional_path, int mode) {
 	if (extention == NULL) extention = "";
-	int mode, arg_number;
+	int arg_number;
 	if(*argv[skip_arg0] == '.' && *argv[skip_arg0]+1 == '/') mode = file__relative;
 	else if (*argv[skip_arg0] == '/') mode = file__directory;
 	else {

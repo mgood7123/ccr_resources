@@ -11,9 +11,6 @@
 # define N_ARGS_HELPER1(...) N_ARGS_HELPER2(__VA_ARGS__)
 # define N_ARGS_HELPER2(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, n, ...) n
 
-# define foo(...) foo_helper(N_ARGS(__VA_ARGS__), __VA_ARGS__)
-# define clock__total(...) clock__total_h(N_ARGS(__VA_ARGS__), __VA_ARGS__)
-
 #elif defined(__GNUC__)
 
 /* GCC-style: named argument, empty arg is OK */
@@ -22,13 +19,21 @@
 # define N_ARGS_HELPER1(args...) N_ARGS_HELPER2(args)
 # define N_ARGS_HELPER2(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, n, x...) n
 
-# define foo(args...) foo_helper(N_ARGS(args), args)
-# define clock__total(args...) clock_total__h(N_ARGS(args), args)
-
 #else
 
 #error variadic macros for your compiler here
 
+#endif
+
+
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+/* C99-style: anonymous argument referenced by __VA_ARGS__, empty arg not OK */
+# define foo(...) foo_helper(N_ARGS(__VA_ARGS__), __VA_ARGS__)
+# define clock__total(...) clock__total_h(N_ARGS(__VA_ARGS__), __VA_ARGS__)
+#elif defined(__GNUC__)
+/* GCC-style: named argument, empty arg is OK */
+# define foo(args...) foo_helper(N_ARGS(args), args)
+# define clock__total(args...) clock_total__h(N_ARGS(args), args)
 #endif
 
 static inline void foo_helper(unsigned int n_args, ...)

@@ -1,0 +1,8 @@
+[01:36] <mobile_c> any specifically for C that generate C code?
+[01:37] <azarus> mobile_c: i know of csmith
+[01:37] <azarus> but that is for creating non-sensical c code
+[01:37] <post-factum> hiring juniors is for that usually
+[01:38] <mobile_c> " Csmith --- a random generator of C programs" lol
+[01:39] <azarus> it's for testing compilers primarily
+[01:39] <mobile_c> o.o
+https://github.com/csmith-project/csmith

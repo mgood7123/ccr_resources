@@ -1,0 +1,11 @@
+i intend for the cpu to work with the raw as-is ISA if possible, without needing to translate like LLVM does
+
+my cpu has 2 major rules
+1. it must be easy to modify
+2. it must be modular
+
+i intend for it to be split into two components
+
+the first component is the ISA specific information such as the decoder and/or disassembler, aswell as interpreter
+
+the second component is the hardware, eg the CPU layout and components that make up that CPU such as the registers, memory banks, RAM, ALU (if it can be emulated) and others

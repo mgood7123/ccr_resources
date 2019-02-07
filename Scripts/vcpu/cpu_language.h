@@ -81,7 +81,7 @@ void instruction_add_operands(struct instruction ** instruction_bank, char * ins
     if (!(*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operands) (*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operands = env__new();
     char * assembly1 = strdup(operands);
     for (char * tok1 = strtok(assembly1, ", "); tok1; tok1 = strtok(NULL, ", ")) {
-    	(*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operands = env__add((*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operands, tok1);
+    	(*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operands = env__add2((*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operands, tok1);
         (*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operand_count++;
     }
     free(assembly1);
@@ -98,8 +98,10 @@ void instruction_add_operations(struct instruction ** instruction_bank, char * i
     (*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_implicit_operands = env__new();
     char ** tokens2 = env__new();
     char * assembly2 = strdup((*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operations);
-    for (char * tok2 = strtok(assembly2, " "); tok2; tok2 = strtok(NULL, " ")) {
-        tokens2 = env__add(tokens2, tok2);
+	ps(assembly2)
+    for (char * tok2 = strtok(assembly2, " (*)+;"); tok2; tok2 = strtok(NULL, " (*)+;")) {
+		ps(tok2)
+        tokens2 = env__add2(tokens2, tok2);
     }
     free(assembly2);
     // step 2. determine what parts are IMPLICIT
@@ -111,13 +113,20 @@ void instruction_add_operations(struct instruction ** instruction_bank, char * i
             }
         }
         if (m == env__size((*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_operands)) {
-            (*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_implicit_operands = env__add((*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_implicit_operands, tokens2[i]);
+            (*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_implicit_operands = env__add2((*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_implicit_operands, tokens2[i]);
             (*instruction_bank)[(*instruction_bank)[0].internal_bank_count].instruction_implicit_count++;
         }
     }
     env__free(tokens2);
 }
 
+void denit_table_bank(char *** table_instructions, char *** table_types, char *** table_registers, char *** table_encoding, struct instruction ** instruction_bank) {
+    env__free(*table_instructions);
+    env__free(*table_types);
+    env__free(*table_registers);
+    env__free(*table_encoding);
+	instruction_delete_bank(instruction_bank);
+}
 
 void instruction_finalize(struct instruction ** instruction_bank) {
     (*instruction_bank)[0].internal_bank_count++;
@@ -177,70 +186,35 @@ int str_isdigit(char * str) {
     return 1;
 }
 
-#define parsedo(x,str) \
-    if (!operr) {\
-        if (opc > x-1) {\
-            int isnum = 0;\
-            char * type = malloc(50);\
-            char * tmp2 = strdup(tokens1[x-1]);\
-            char * tmp = strtok(tmp2, "_");\
-            if(str_isdigit(tmp)) {\
-                isnum = 1;\
-                sprintf(type, "type_%s", "number");\
-            } else {\
-                sprintf(type, "type_%s", tmp);\
-            }\
-            char * i_ty##x = env__get(table_encoding, type);\
-            if (i_ty##x) opcode_structure[internal_parser_index].ty##x = *i_ty##x;\
-            else {\
-                printf("error: invalid token: %s, skipping parsing this line: %s\n", tmp,str);\
-                opcode_structure[internal_parser_index].ty##x = 0x0;\
-                opcode_structure_clear(internal_parser_index);\
-                operr=1;\
-            }\
-            free(type);\
-            if (isnum) {\
-                opcode_structure[internal_parser_index].op##x = atoi(tmp);\
-            } else {\
-                char * i_op##x;\
-                i_op##x = env__get(table_encoding, tokens1[x-1]);\
-                if (i_op##x) opcode_structure[internal_parser_index].op##x = *i_op##x;\
-                else opcode_structure[internal_parser_index].op##x = 0x0;\
-            }\
-            free(tmp2);\
-        } else {\
-            opcode_structure[internal_parser_index].op##x = 0x0;\
-        }\
-    }
+#include "asm.h"
 
 void parse(char ** table_encoding, char * str) {
     if (!table_encoding) {
         puts("error: encoding table is not defined, please define one");
         return;
     }
-    if (!opcode_structure) {
-        opcode_structure = malloc(50*sizeof(*opcode_structure)); // create 50 structure pointers
-        memset(opcode_structure, 0, 50);
-    }
+    initopcode();
     // step 1. gather needed information
     // we use our shell's env functions cus fuck manually reallocating
     char ** tokens1 = env__new();
     char * assembly1 = strdup(str);
     char * inst = strdup(strtok(assembly1, " "));
     for (char * tok1 = strtok(NULL, ", "); tok1; tok1 = strtok(NULL, ", ")) {
-        tokens1 = env__add(tokens1, tok1);
+        tokens1 = env__add2(tokens1, tok1);
     }
     free(assembly1);
     char * i_ins = env__get(table_encoding, inst);
     if (i_ins) opcode_structure[internal_parser_index].ins = *i_ins;
     else opcode_structure[internal_parser_index].ins = 0x0;
     int opc = env__size(tokens1);
-    if (opc == 0) abort();
-    else {
-        int operr=0;
-        parsedo(1, str);
-        parsedo(2, str);
-        parsedo(3, str);
+    if (opc == 0) {
+	} else {
+		ps(str)
+		parser_table_encoding = &table_encoding;
+		yycontext ctx;
+		memset(&ctx, 0, sizeof(yycontext));
+		yyparse__(&ctx, str);
+		parser_table_encoding = NULL;
     }
     free(inst);
     env__free(tokens1);
@@ -306,10 +280,10 @@ char *str_replace(char *orig, char *rep, char *with) {
 
 #define cpu_disassemble_info(x, str) \
                 if (instruction_bank[bank].instruction_operand_count > x-1) {\
-                    t = bitfind(opcode_structure[index].ty##x, table_types);\
+                    t = bitfind(opcode_structure[index].opcode[x-1].type, table_types);\
                     if (t) {\
                         if (strcmp(t, type_register) == 0) {\
-                            val = bitfind(opcode_structure[index].op##x, table_registers);\
+                            val = bitfind(opcode_structure[index].opcode[x-1].opcode, table_registers);\
                             if (val) {\
                                 if (str) {\
                                     char * str2 = str_replace(str, instruction_bank[bank].instruction_operands[x-1], val);\
@@ -321,7 +295,7 @@ char *str_replace(char *orig, char *rep, char *with) {
                             }\
                         } else if (strcmp(t, type_number) == 0) {\
                             char * v = malloc(100);\
-                            sprintf(v, "%d", opcode_structure[index].op##x);\
+                            sprintf(v, "%d", opcode_structure[index].opcode[x-1].opcode);\
                             if (str) {\
                                 char * str2 = str_replace(str, instruction_bank[bank].instruction_operands[x-1], v);\
                                 free(str);\
@@ -368,22 +342,27 @@ int cpu_disassemble(char ** table_instructions, char ** table_types, char ** tab
             if (bank != -1) {
                 printf("%s ", i);
                 free(i);
-                // next print the instruction bank information for the aquired index
-                instruction_info(instruction_bank, bank);
-                if (str) {
-                    *str = malloc(strlen(instruction_bank[bank].instruction_operations)+512);
-                    strcpy(*str, instruction_bank[bank].instruction_operations);
-                    cpu_disassemble_info(1, *str)
-                    cpu_disassemble_info(2, *str)
-                    cpu_disassemble_info(3, *str)
-                } else {
-                    cpu_disassemble_info(1, str)
-                    cpu_disassemble_info(2, str)
-                    cpu_disassemble_info(3, str)
-                }
-                printf("\b\b \n");
+				if (instruction_bank[bank].instruction_operations) {
+					// next print the instruction bank information for the aquired index
+	//                 instruction_info(instruction_bank, bank);
+					if (str) {
+						*str = malloc(strlen(instruction_bank[bank].instruction_operations)+512);
+						strcpy(*str, instruction_bank[bank].instruction_operations);
+						cpu_disassemble_info(1, *str)
+						cpu_disassemble_info(2, *str)
+						cpu_disassemble_info(3, *str)
+					} else {
+						cpu_disassemble_info(1, str)
+						cpu_disassemble_info(2, str)
+						cpu_disassemble_info(3, str)
+					}
+					printf("\b\b \n");
+				} else {
+					*str = NULL;
+					printf("\n");
+				}
             } else {
-                puts("warning: desired instruction was not found in instruction bank, decoding ability will be limited");
+                printf("warning: desired instruction (%s) was not found in instruction bank, decoding ability will be limited\n", i);
                 printf("%s ", i);
                 free(i);
             }
@@ -432,8 +411,11 @@ int cpu_decode(char ** table_instructions, char ** table_types, char ** table_re
                 if (bank != -1) {
                     // attempt to decode the operation
                     if (s) {
-                        ps(s)
-                        
+                        printf("expression = %s\n", s);
+// 						yycontext ctx;
+// 						memset(&ctx, 0, sizeof(yycontext));
+// 						yyparse__x(_STRING_, &ctx, yy_true_or_false);
+						
                         int err = evaluateExpression(s);
                         free(s);
                         for (int i = 0; i < nVariables; i++) printf("%s = %i;\n", variable[i].name, *variable[i].valueptr);

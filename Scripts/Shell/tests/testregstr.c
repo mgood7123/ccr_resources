@@ -3,42 +3,49 @@
 
 int main(void) {
 	str_new(test);
+	ps(test.string); TYPEINFO(test);
 	str_insert_string(test, "Hello World");
-	str_insert_char(test, '!');
-	str_insert_string(test, "\n");
+	ps(test.string); TYPEINFO(test);
+	str_insert_string(test, "!");
+	ps(test.string); TYPEINFO(test);
 	str_insert_int(test, 123456);
-	str_insert_string(test, "\r\b\f\t''\"\"\\\n");
-	str_insert_string(test, "'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM foo\a\b\c\e\E\f\n\r\t\v\\\0255\xFF \1 \0255   あ  \343\201\202\'");
-	str_insert_string(test, "\a\b\c\d\e\f\g\h\i\kj\k\l\m\n\o\p\q\r\s\t\v\w\y\z");
-	str_info(test);
+	ps(test.string); TYPEINFO(test);
+	str_insert_string(test, "'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM foo5'あ");
+	ps(test.string); TYPEINFO(test);
 	str_free(test);
-	/*
-	char * s = "hello\nworld\n!";
-	int * t;
-	int count = 0;
-	for (int i = 0; i < strlen(s); i++) {
-		if (s[i-1] == '\n') count++;
-        else {
-            if (t == NULL) {
-                t = malloc(sizeof(*t)*1);
-                t[0] = 0;
-            }
-            if (i != 0) {
-                int * k = realloc(t, sizeof(*t)*(i+1));
-                if (k == NULL) break;
-                t = k;
-                t[i-1] = 0;
-            }
-			t[i-1] = count;
-        }
-	}
 	
-	ps(s);
-	pc(s[6]);
-	char * ss = "hello\\nworld\\n!";
-	ps(ss);
-	pc(ss[6+t[6]]);
-	free(t);
-	*/
+	
+	
+	// test type identification
+	
+	str_new(bin);
+	ps(bin.string); TYPEINFO(bin);
+	str_insert_int(bin, 0);
+	ps(bin.string); TYPEINFO(bin);
+	str_insert_int(bin, 2);
+	ps(bin.string); TYPEINFO(bin);
+	puts("undoing");
+	str_undo(bin);
+	ps(bin.string); TYPEINFO(bin);
+	puts("undoing");
+	str_undo(bin);
+	ps(bin.string); TYPEINFO(bin);
+	str_free(bin);
+	
+	str_new(bin2);
+	ps(bin2.string); TYPEINFO(bin2);
+	puts("adding 1");
+	str_insert_string(bin2, "1");
+	ps(bin2.string); TYPEINFO(bin2);
+	puts("adding 0");
+	str_insert_string(bin2, "0");
+	ps(bin2.string); TYPEINFO(bin2);
+	puts("adding x");
+	str_insert_string(bin2, "x");
+	ps(bin2.string); TYPEINFO(bin2);
+	puts("adding 1");
+	str_insert_string(bin2, "1");
+	ps(bin2.string); TYPEINFO(bin2);
+	str_free(bin2);
 	return -1;
 }

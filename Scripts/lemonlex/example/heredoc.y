@@ -43,5 +43,6 @@ WS ::= ".*". {
 	{
 // 		LX_REPARSE("<<CAT[LX_NESTLEVEL] HEREDOC<<EOF <<CAT[LX_NESTLEVEL] <<EOF K <<CAT[LX_NESTLEVEL]");
 		LX_REPARSE("<<CAT <<EOF EOF CAT");
+// 		ParseReadFile("../Shell/regex/test.sh");
 	}
 }

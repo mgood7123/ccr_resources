@@ -22,23 +22,8 @@ int32_t binary(int start, int end, char * s) {
 	return x;
 }
 
-#define SIGN_EXTEND(to, from, value) ( \
-	( \
-		( \
-			(value) << (to - from) \
-		) \
-		>> (to - from) \
-	) \
-)
-	
-#define ZERO_EXTEND(to, from, value) ( \
-	( \
-		(unsigned)( \
-			(value) << (to - from) \
-		) \
-		>> (to - from) \
-	) \
-)
+#define SIGN_EXTEND(to, from, value) ( ( ( (value) << (to - from) ) >> (to - from) ) )	
+#define ZERO_EXTEND(to, from, value) ( ( (unsigned)( (value) << (to - from) ) >> (to - from) ) )
 
 	
 void extract_h(char * to, char * from, int locationstart,int locationend) {

@@ -1,0 +1,377 @@
+im attempting to write a recursive decent parser generator (as it seems the easiest type of parser to write)
+
+but i am not sure how to do
+so  
+and i am not sure how to go about it
+
+this is my current parser
+
+https://bpaste.net/show/f785d5a1d0aa
+
+parser itself is at line 11
+
+parser output is at line 1773
+
+produced parser's execution is at line 3995
+
+produced parser's code is at 4012
+
+.
+
+.
+
+this is for my assembler/disassembler generator based on a custom parser syntax being designed by me specifically for this purpose
+
+this eventually aims to be capable of successfully producing assemblers and disassemblers for almost any ISA that it can handle aswell as custom ISA's
+
+i know that this will be very difficult due to the vast quantity of existing ISA's as well as their complexity and i do NOT expect this to be completed overnight
+
+i am fully aware that this will be a long term project
+
+i have tried modifying existing parser generators for various purposes (such as supporting rule replacement, custom dynamic tokens, ect) but found it rather difficult
+
+so i figured that attempting to modify one to support an almost completely new syntax would be next to impossible, if not significantly hard
+
+therefore i am attempting to write my own parser generator from scratch
+
+syntax specification for the parser:
+
+	/*
+		encoding
+		https://codeabbey.github.io/heavy-data-1/msc-4-asm-manual-1973.pdf
+		this PDF serves as inspiration to the 
+		encoding syntax format using by the parser
+
+		CURRENTLY ONLY SUPPORTS A SINGLE LAYER ENCODING SYNTAX
+
+		only word BEFORE the colon shall be recognized
+		the rest shall be counted as if it where a comment
+
+		eg RECOGNIZED:COMMENT
+
+		x shall count as 0 or 1 (like a wildcard or '.' (any character) in regex)
+	*/
+	#P:
+	/*
+		denotes a symbol reference, for example:
+		
+		[000:0P] > [#P] > [0P: r0:r1]
+		
+	*/
+		0P: r0:r1
+		1P: r2:r3
+		2P: r4:r5
+		3P: r6:r7
+		4P: r8:r9
+		5P: r10:r11
+		6P: r12:r13
+		7P: r14:r15
+	RP:
+		000:0P
+		001:1P
+		010:2P
+		011:3P
+		100:4P
+		101:5P
+		110:6P
+		111:7P
+	REG:
+		0000:r0
+		0001:r1
+		0010:r2
+		0011:r3
+		0100:r4
+		0101:r5
+		0110:r6
+		0111:r7
+		1000:r8
+		1001:r9
+		1010:r10
+		1011:r11
+		1100:r12
+		1101:r13
+		1110:r14
+		1111:r15
+	xx:
+		00:ADD
+		01:SUB
+		10:LD
+		11:XCH
+	xxxx:
+		0000:CLR
+		0001:CLC
+		0010:IAC
+		0011:CMC
+		0100:CMA
+		0101:RAL
+		0110:RAR
+		0111:TCC
+		1000:DAC
+		1001:TCS
+		1010:STC
+		1011:DAA
+		1100:KBP
+	CN:
+	//1xxx: invert all other jump conditions
+	// [] represent a muli-match parse, in where the same string can be matched multiple times without terminating to next rule after a single match
+		
+		0xx1: none //jump if test signal of 4004 is = 0
+	[1xx1]: none //jump if test signal of 4004 is = 1
+	[0x1x]: none //jump if carry bit = 1
+	[1x1x]: none //jump if carry bit = 0
+	[01xx]: none //jump if accumulator = 0
+	[11xx]: none //jump if accumulator != 0
+	OP:
+		0000:WRM
+		0001:WMP
+		0010:WRR
+		0011:WPM
+		0100:WR0
+		0101:WR1
+		0110:WR2
+		0111:WR3
+		1000:SBM
+		1001:RDM
+		1010:RDR
+		1011:ADM
+		1100:RD0
+		1101:RD1
+		1110:RD2
+		1111:RD3
+
+	//     /* consecutive sequence will be concated
+	//     * example:
+	//     * |DATA|DATA|
+	//     * assuming DATA is 4 bits long
+	//     * indicates DATA takes up 8 bits
+	//     */
+		
+	DATA:
+		xxxx:DATA
+	ADDR:
+		xxxx:ADDR
+		
+		/*
+		
+		| does nothing and can act as a visual seperator to help visualize the structure of an encoding's binary layout *
+		
+		$...{} represents variable placement based action code
+		both #num and $name can be used to reference the position of an action code
+		${name#num} represents a $name that occurs more than once in the same rule, where #num indicates the occurence number of $name to act upon
+		can be concated via $ or # to specify multiple places where the following rule should be placed
+		
+		
+		FIN: |0011|RP|0|				$FIN$0011$0			{ puts($$.name); } $RP{ puts($$.content); }
+		FIN: |0011|RP|0|				$FIN $0011 $0			{ puts($$.name); } $RP{ puts($$.content); }
+		FIN: |0011|RP|0|				$FIN${0011#0}$0		{ puts($$.name); } $RP{ puts($$.content); }
+		FIN: |0011|RP|0|				$FIN
+										$
+										{
+											0
+											0
+											1
+											1
+											#
+											0
+										}
+										#
+										3
+										{ puts($$.name); } $RP{ puts($$.content); }
+		FIN: |0011|RP|0|				#0#1#3				{ puts($$.name); } $RP{ puts($$.content); }
+		FIN: |0011|RP|0|				#0 #1 #3				{ puts($$.name); } $RP{ puts($$.content); }
+		FIN: |0011|RP|0|				$FIN				{ puts($$.name); } $0011{ puts($$.name); } $RP{ puts($$.content); } $0{ puts($$.name); }
+		FIN: |0011|RP|0|				$FIN{ puts($$.name); } ${0011#0}{ puts($$.name); } $RP{ puts($$.content); } $0{ puts($$.name); }
+		FIN: |0011|RP|0|				#0{ puts($$.name); } #1{ puts($$.name); } #2{ puts($$.content); } #3{ puts($$.name); }
+		FIN: |0011|RP|0|				#0{ puts($$.name); } $0011{ puts($$.name); } $RP{ puts($$.content); } #3{ puts($$.name); }
+		all of these are equivilant to
+		FIN { puts($$.name); } : |0011 { puts($$.name); } |RP { puts($$.content); } |0 { puts($$.name); } |
+		
+		
+		FIM: |0010|RP|0|DATA|DATA|		${DATA#0} {DATA1}
+										${DATA#1} {DATA2}
+										${DATA#0}$FIM {ECHO}
+		is equivilant to
+		FIM {ECHO}: |0010|RP|0|DATA {DATA1} {ECHO} |DATA {DATA2}|
+		
+		*/
+		
+	FIN1: |0011|RP|0|
+		$0011 {
+	printf("a->contents = 0011, regexEngineb_bits = %s\n", regexEngineb_bits);
+	puts("FIN1 ");
+	}
+
+			$RP {
+	puts("RP ");
+	}
+	FIN2: |0011|RP|1|
+		$0011 {
+	printf("a->contents = 0011, regexEngineb_bits = %s\n", regexEngineb_bits);
+	puts("FIN1 ");
+	}
+
+			$RP {
+	puts("RP ");
+	}
+	JCN:  |0001|CN  |ADDR|ADDR|
+		$0001 {
+	printf("a->contents = 0001, regexEngineb_bits = %s\n", regexEngineb_bits);
+	puts("JCN ");
+	}
+			$CN {
+	puts("CN");
+			}
+				${ADDR#0}
+					${ADDR#1} {
+	printf("a->contents = xxxx, regexEngineb_bits = %s\n", regexEngineb_bits);
+				}
+
+
+and the parser syntax that parses this (not important but may help understand the syntax better) :
+
+	parser_root : <root>+;
+	root : <comment> | <definition> | <instruction> | <S> <EOL>;
+	definition : <definition_start> <definition_statement>+;
+	instruction : <instruction_start>? <instruction_statement> ((<S> (<action_code> | <action_code_segmented>))+)? <instruction_end>;
+
+	definition_start : <hash>? <ISA_DEFINE> <S> <colon> <EOL>;
+	definition_statement : <S> <definition_item>+;
+	definition_item : <S> (<item> <S> ( <pair> | <single> ))? <S> <comment>? <EOL>;
+
+	instruction_start : <ISA_DEFINE> <S> <colon>;
+	instruction_statement : <S> <instruction_item>;
+	instruction_item : <S> ('|' | <binary> (<action>+)? | <ISA_RULE> | <space> | <tab>)+;
+	instruction_end : <S> <comment>? <EOL>;
+
+	ISA_DEFINE : <word> (<action>+)?;
+	ISA_RULE : <word> (<action>+)?;
+	item : <bracketed_item> | <normal_item>;
+	bracketed_item : '[' <word> ']' <colon>;
+	normal_item : <word> <colon>;
+	single : <word>;
+	pair : <word> <colon> <word>;
+
+	binary : /[01]+/;
+	colon : ':';
+	hash : '#';
+	EOL	: ( "\n" | "\r\n" | "\r" | ";" );
+	comment : <S> (<single_line_comment> | <multi_line_comment>);
+	single_line_comment : "//" /[^\r\n]*/;
+	multi_line_comment : "/*" ("*/"! /.|\n/)+ "*/";
+
+
+	name : '$' <word>;
+	num : '#' <number>;
+	indexedname : "${" <word> <num> '}';
+	action_code : (<name> | <num> | <indexedname> | (<space> | <tab>)+)+ <action>+;
+
+	word : /[a-zA-Z0-9]+/;
+	number : /[0-9]+/;
+	space : ' ';
+	tab : "\t";
+	SS : (<space> | <tab> | "\n");
+	S : (<space> | <tab>)*;
+	word_segmented : <SS>* <word>;
+	number_segmented : <SS>* <number>;
+	name_segmented : <SS>* '$' <word_segmented>+;
+	num_segmented : <SS>* '#' <number_segmented>+;
+	indexedname_segmented : <SS>* "$" <SS>* "{" <word_segmented>+ <num_segmented>+ <SS>* '}';
+	action_code_segmented : (<name_segmented> | <num_segmented> | <indexedname_segmented> | <SS>+)+ <S> <action>+;
+
+	action : <S> "{" ("}"! /.|\n/)+ "}";
+
+
+results expected are dependent on the parser syntax given thus are unreliable since they can easily change as the syntax changes
+
+HOWEVER for the sake of completion i will assume this syntax will not change
+
+for the expected results:
+
+given the following instruction rules:
+
+    FIN1: |0011|RP|0|
+    FIN2: |0011|RP|1|
+    JCN:  |0001|CN  |ADDR|ADDR|
+
+the parser should behave as follows:
+
+for FIN1:
+
+    given 00110000
+        attempt to match FIN1
+            match 0011
+            attempt to match RP
+                from RP match 000
+            matches RP
+            match 0
+        matches FIN1
+        execute action code
+
+for FIN2:
+
+    given 00110001
+        attempt to match FIN1
+            match 0011
+            attempt to match RP
+                from RP match 000
+            matches RP
+            does not match 0
+        does not matches FIN1
+
+        attempt to match FIN2
+            match 0011
+            attempt to match RP
+                from RP match 000
+            matches RP
+            match 1
+        matches FIN2
+        execute action code
+
+for JCN:
+
+    given 0001111110100101
+        attempt to match FIN1
+            does not match 0011
+        does not match FIN1
+
+        attempt to match FIN2
+            does not match 0011
+        does not match FIN2
+
+        attempt to match JCN
+            match 0001
+            attempt to match CN
+                does not match 0xx1
+                match 1xx1
+                does not match 0x1x
+                match 1x1x
+                does not match 01xx
+                match 11xx
+            matches CN
+            attempt to match DATA occurrence 0
+                match xxxx
+            matches DATA occurrence 0
+            attempt to match DATA occurrence 1
+                match xxxx
+            matches DATA occurrence 1
+        matches JCN
+        execute action code
+
+actual results:
+
+	binary = 00110010
+	a->contents = 0011, regexEngineb_bits = 0011
+	FIN1 
+	RP 
+	binary = 00110011
+	a->contents = 0011, regexEngineb_bits = 0011
+	FIN1 
+	RP 
+	binary = 0001111110100101
+	a->contents = 0001, regexEngineb_bits = 0001
+	JCN 
+	CN
+	a->contents = xxxx, regexEngineb_bits = 1010
+	a->contents = xxxx, regexEngineb_bits = 0101
+
+

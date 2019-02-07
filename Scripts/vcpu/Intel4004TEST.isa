@@ -1,0 +1,22 @@
+RP:
+//     000:0P
+    001:1P
+//     010:2P
+//     011:3P
+//     100:4P
+//     101:5P
+//     110:6P
+//     111:7P
+CN:
+  //1xxx: invert all other jump conditions
+    
+    0xx1: none //jump if test signal of 4004 is = 0
+   [1xx1]: none //jump if test signal of 4004 is = 1
+   [0x1x]: none //jump if carry bit = 1
+   [1x1x]: none //jump if carry bit = 0
+   [01xx]: none //jump if accumulator = 0
+   [11xx]: none //jump if accumulator != 0
+ADDR:
+	xxxx:ADDR
+FIN: |0011|RP|0| // [0011 000 0] OR [0011 001 0] OR [0011 010 0] and so on [0011 111 0]
+JCN: |0001|CN  |ADDR|ADDR|

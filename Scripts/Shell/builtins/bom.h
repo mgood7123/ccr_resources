@@ -1,4 +1,5 @@
 ﻿#pragma once
+#define BOM_MARK
 
 
 #define builtin__BOM_free(bom_struct) { \
@@ -79,12 +80,4 @@ struct BOM builtin__BOM_get(char * string) {
 		mode = mode_both; \
 		__hexdump_string(bom_struct.BOM, 0,bom_struct.length, 5); \
 	}:puts(bom_struct.type_as_string); \
-}
-
-char * filetostring(char * file) {
-	char * buf;
-	size_t size;
-	read__(file, &buf, &size);
-	buf[size] = NULL;
-	return strdup(buf);
 }

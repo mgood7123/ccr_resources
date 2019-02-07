@@ -1,5 +1,4 @@
-﻿//Author: mgood7123 (Matthew James Good) http://github.com/mgood7123
-
+﻿/* Author: mgood7123 (Matthew James Good) http://github.com/mgood7123 */
 #pragma once
 
 /*
@@ -197,13 +196,19 @@
 #  define SCNxMAX       __SCN_MAX_LENGTH_MODIFIER__ "x"
 */
 #include <stdio.h>
+#include <stdbool.h>
 #include <inttypes.h>
 
-#define puint64(x) printf("%s = %" PRIu64 "\n", #x, x);
-#define puint32(x) printf("%s = %" PRIu32 "\n", #x, x);
-#define puint16(x) printf("%s = %" PRIu16 "\n", #x, x);
-#define puint8(x)  printf("%s = %" PRIu8 "\n", #x, x);
+#define pi64(x) printf("%s = %" PRId64 "\n", #x, x);
+#define pui64(x) printf("%s = %" PRIu64 "\n", #x, x);
+#define pi32(x) printf("%s = %" PRId32 "\n", #x, x);
+#define pui32(x) printf("%s = %" PRIu32 "\n", #x, x);
+#define pi16(x) printf("%s = %" PRId16 "\n", #x, x);
+#define pui16(x) printf("%s = %" PRIu16 "\n", #x, x);
+#define pi8(x)  printf("%s = %" PRId8 "\n", #x, x);
+#define pui8(x)  printf("%s = %" PRIu8 "\n", #x, x);
 
+#define pb(x)      printf("%s = %s\n", #x, x==true?"true":"false");
 #define pc(x)      printf("%s = %c\n", #x, x);
 #define ps(x)      printf("%s = %s\n", #x, x);
 #define pus(x)     ps(x);
