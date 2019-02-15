@@ -373,9 +373,9 @@ void
 init_env (void)
 {
     if (bytecmpq(GQ2, "no") == 0) fprintf(stderr, "----------------------------------------------------------------------->called %s() at line %d from %s\n", __func__, __LINE__, __FILE__);
-    extern char ** __environ;
-    assert(__environ!=NULL);
-    saved_environ = __environ;
+    extern char ** environ;
+    assert(environ!=NULL);
+    saved_environ = environ;
     assert(saved_environ!=NULL);
 }
 

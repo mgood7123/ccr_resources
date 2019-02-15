@@ -199,40 +199,80 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#define pi64(x) printf("%s = %" PRId64 "\n", #x, x);
-#define pui64(x) printf("%s = %" PRIu64 "\n", #x, x);
-#define pi32(x) printf("%s = %" PRId32 "\n", #x, x);
-#define pui32(x) printf("%s = %" PRIu32 "\n", #x, x);
-#define pi16(x) printf("%s = %" PRId16 "\n", #x, x);
-#define pui16(x) printf("%s = %" PRIu16 "\n", #x, x);
-#define pi8(x)  printf("%s = %" PRId8 "\n", #x, x);
-#define pui8(x)  printf("%s = %" PRIu8 "\n", #x, x);
+#define PRINTF_END_WITH_NEW_LINE true
+#define PRINTF_END_WITHOUT_NEW_LINE false
 
-#define pb(x)      printf("%s = %s\n", #x, x==true?"true":"false");
-#define pc(x)      printf("%s = %c\n", #x, x);
-#define ps(x)      printf("%s = %s\n", #x, x);
-#define pus(x)     ps(x);
-#define pi(x)      printf("%s = %d\n", #x, x);
-#define pui(x)     printf("%s = %u\n", #x, (unsigned int) x);
-#define puc(x)     printf("%s = %u\n", #x, (unsigned char) x);
-#define pu(x)      pui(x)
-#define pd(x)      printf("%s = %f\n", #x, x);
-#define pud(x)     pd(x)
-#define pl(x)      printf("%s = %li\n", #x, x);
-#define pli(x)     pl(x)
-#define pul(x)     printf("%s = %lu\n", #x, x);
-#define puli(x)    pul(x)
-#define pll(x)     printf("%s = %lli\n", #x, x);
-#define plli(x)    pll(x)
-#define pull(x)    printf("%s = %llu\n", #x, x);
-#define pulli(x)   pull(x)
-#define psize_t(x) printf("%s = %zu\n", #x, x);
-#define pz(x)      psize_t(x)
-#define pp(x)      printf("%s = %p\n", #x, x);
-#define px(x)      printf("%s = %02x\n", #x, x);
-#define p(x)       printf(#x);
-#define psi(x, i) { \
-    printf("%s = ", #x); \
-    for (int z = 0; z < i; z++) printf("%c", x[z]); \
-    printf("\n"); \
+#define fpi64(PRINTING_FUNCTION, x, end_with_new_line) PRINTING_FUNCTION("%s = %" PRId64 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define pi64(x) fpi64(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpui64(PRINTING_FUNCTION, x, end_with_new_line) PRINTING_FUNCTION("%s = %" PRIu64 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define pui64(x) fpui64(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpi32(PRINTING_FUNCTION, x, end_with_new_line) PRINTING_FUNCTION("%s = %" PRId32 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define pi32(x) fpi32(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpui32(PRINTING_FUNCTION, x, end_with_new_line) PRINTING_FUNCTION("%s = %" PRIu32 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define pui32(x) fpui32(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpi16(PRINTING_FUNCTION, x, end_with_new_line) PRINTING_FUNCTION("%s = %" PRId16 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define pi16(x) fpi16(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpui16(PRINTING_FUNCTION, x, end_with_new_line) PRINTING_FUNCTION("%s = %" PRIu16 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define pui16(x) fpui16(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpi8(PRINTING_FUNCTION, x, end_with_new_line)  PRINTING_FUNCTION("%s = %" PRId8 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define pi8(x)  fpi8(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpui8(PRINTING_FUNCTION, x, end_with_new_line)  PRINTING_FUNCTION("%s = %" PRIu8 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define pui8(x)  fpui8(printf, x, PRINTF_END_WITH_NEW_LINE)
+
+#define fpb(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %s%s", #x, x==true?"true":"false", end_with_new_line==true?"\n":"");
+#define pb(x)      fpb(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpc(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %c%s", #x, x, end_with_new_line==true?"\n":"");
+#define pc(x)      fpc(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fps(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %s%s", #x, x, end_with_new_line==true?"\n":"");
+#define ps(x)      fps(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpus(PRINTING_FUNCTION, x, end_with_new_line)     fps(PRINTING_FUNCTION, x, end_with_new_line)
+#define pus(x)     fpus(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpi(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %d%s", #x, x, end_with_new_line==true?"\n":"");
+#define pi(x)      fpi(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpui(PRINTING_FUNCTION, x, end_with_new_line)     PRINTING_FUNCTION("%s = %u%s", #x, (unsigned int) x, end_with_new_line==true?"\n":"");
+#define pui(x)     fpui(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpuc(PRINTING_FUNCTION, x, end_with_new_line)     PRINTING_FUNCTION("%s = %u%s", #x, (unsigned char) x, end_with_new_line==true?"\n":"");
+#define puc(x)     fpuc(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpu(PRINTING_FUNCTION, x, end_with_new_line)      fpui(PRINTING_FUNCTION, x, end_with_new_line)
+#define pu(x)      fpu(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpd(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %f%s", #x, x, end_with_new_line==true?"\n":"");
+#define pd(x)      fpd(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpud(PRINTING_FUNCTION, x, end_with_new_line)     fpd(PRINTING_FUNCTION, x, end_with_new_line)
+#define pud(x)     fpud(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpl(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %li%s", #x, x, end_with_new_line==true?"\n":"");
+#define pl(x)      fpl(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpli(PRINTING_FUNCTION, x, end_with_new_line)     fpl(PRINTING_FUNCTION, x, end_with_new_line)
+#define pli(x)     fpli(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpul(PRINTING_FUNCTION, x, end_with_new_line)     PRINTING_FUNCTION("%s = %lu%s", #x, x, end_with_new_line==true?"\n":"");
+#define pul(x)     fpul(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpuli(PRINTING_FUNCTION, x, end_with_new_line)    fpul(PRINTING_FUNCTION, x, end_with_new_line)
+#define puli(x)    fpuli(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpll(PRINTING_FUNCTION, x, end_with_new_line)     PRINTING_FUNCTION("%s = %lli%s", #x, x, end_with_new_line==true?"\n":"");
+#define pll(x)     fpll(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fplli(PRINTING_FUNCTION, x, end_with_new_line)    fpll(PRINTING_FUNCTION, x, end_with_new_line)
+#define plli(x)    fplli(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpull(PRINTING_FUNCTION, x, end_with_new_line)    PRINTING_FUNCTION("%s = %llu%s", #x, x, end_with_new_line==true?"\n":"");
+#define pull(x)    fpull(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpulli(PRINTING_FUNCTION, x, end_with_new_line)   fpull(PRINTING_FUNCTION, x, end_with_new_line)
+#define pulli(x)   fpulli(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpsize_t(PRINTING_FUNCTION, x, end_with_new_line) PRINTING_FUNCTION("%s = %zu%s", #x, x, end_with_new_line==true?"\n":"");
+#define psize_t(x) fpsize_t(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpz(PRINTING_FUNCTION, x, end_with_new_line)      fpsize_t(PRINTING_FUNCTION, x, end_with_new_line)
+#define pz(x)      fpz(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpp(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %p%s", #x, x, end_with_new_line==true?"\n":"");
+#define pp(x)      fpp(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fppx(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %" PRIX64 "%s", #x, x, end_with_new_line==true?"\n":"");
+#define ppx(x)      fppx(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpx(PRINTING_FUNCTION, x, end_with_new_line)      PRINTING_FUNCTION("%s = %02x%s", #x, x, end_with_new_line==true?"\n":"");
+#define px(x)      fpx(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fp(PRINTING_FUNCTION, x, end_with_new_line)       PRINTING_FUNCTION(#x);
+#define p(x)       fp(printf, x, PRINTF_END_WITH_NEW_LINE)
+#define fpsi(PRINTING_FUNCTION, x, i, end_with_new_line) { \
+	char * array = malloc(i+1); \
+    for (int z = 0; z < i; z++) array[z] = x[z]; \
+	array[i] = 0; \
+	array[i+1] = 0; \
+    PRINTING_FUNCTION("%s = %s%s", #x, array, end_with_new_line==true?"\n":""); \
+    free(array); \
 }
+#define psi(x, i) fpsi(printf, x, PRINTF_END_WITH_NEW_LINE)
